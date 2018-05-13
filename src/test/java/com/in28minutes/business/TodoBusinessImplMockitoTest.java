@@ -182,7 +182,7 @@ public class TodoBusinessImplMockitoTest {
         TodoBusinessImpl todoBusinessImpl = new TodoBusinessImpl(todoServiceMock);
 
         List<String> listBooks = Arrays.asList("Learn Spring MVC",
-                "Learn Spring", "Learn to Dance", "Learn to Dance");
+                "Learn Spring", "Learn to Dance");
 
         //Using either "when" or given
         given(todoServiceMock.retrieveTodos(anyString())).willReturn(listBooks);
