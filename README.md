@@ -742,3 +742,176 @@ public void mc_ArgumentCaptureBDDMutipleTimes() {
     assertThat(stringArgumentCaptor.getAllValues().size(), is(2));
 }
 ```
+
+
+
+# Section 6. Mockito Advance
+
+## Step 09 - Hamcrest Matchers
+We can use *harmcrest* library can help us to make Junit test more readable.
+
+There are many functions we could use with the assert, see an example:
+For Arraylist:
+- hasSize();
+- hasItems(100, 101));
+
+Using Matchers `everyItem`.
+- everyItem(greaterThan(90)));
+- everyItem(lessThan(200)));
+
+For Strings:
+- isEmptyString());
+- isEmptyOrNullString();
+
+For Arrays:
+- arrayWithSize(3));
+- arrayContaining(2, 4, 5, 6)
+- arrayContainingInAnyOrder(2, 3, 1));
+
+There are much more methods and matches you can use, check check org.hamcrest.Matchers.class
+
+
+we need to add the dependency to pom if we want to use it.
+```
+<dependency>
+    <groupId>org.hamcrest</groupId>
+    <artifactId>hamcrest-library</artifactId>
+    <version>1.3</version>
+    <scope>test</scope>
+</dependency>  
+```
+
+### HamcrestMatcherTest.java
+
+```Java
+@Test
+	public void mc_basicHamcrestMatchers() {
+
+		// For array list
+		List<Integer> scoreList = Arrays.asList(99, 100, 101,  105);
+
+		assertThat(scoreList, hasSize(4));
+		assertThat(scoreList, hasItems(99,105));
+
+		//Array list: using Matchers
+		assertThat(scoreList, everyItem(greaterThan(55)));
+		assertThat(scoreList, everyItem(lessThan(190)));
+
+		//String related assert
+		assertThat("", isEmptyString());
+		assertThat(null, isEmptyOrNullString());
+
+		//Array
+		Integer [] marks = {2, 4, 5, 6};
+		assertThat(marks, arrayWithSize(4));
+		assertThat(marks, arrayContaining(2, 4, 5, 6));
+		assertThat(marks, arrayContainingInAnyOrder(6, 2));
+	}
+```
+
+
+
+## Step 10 - Mockito Annotations
+We are gong to convert existing classes with Mockito.
+- Mockito Annotations
+  - @Mock
+  - @InjectMocks
+  - @RunWith(MockitoJUnitRunner.class)
+  - @Captor
+
+
+### Example using TodoBusinessImplMockitoInjectMocksTest.java
+we are going to convert class *TodoBusinessImplMockitoTest.java* to use mockito annotations.
+
+#### @Mock annotation.
+Creating the mock by using the @Mock annotation.
+
+The mock was created by doing:
+```Java
+TodoService todoService = mock(TodoService.class);
+```
+
+Which is the same as doing:
+```Java
+@Mock
+TodoService todoService;
+```
+
+We can now remove all the *TodoService todoService = mock(TodoService.class);* instances
+
+#### @InjectMocks
+Instead of us having to inject the mock into the class; Mockito can do it for us by using the  @InjectMocks
+
+Injecting *todoService* mock into the *TodoBusinessImpl* class when we instantiate the class:  
+```Java
+TodoBusinessImpl todoBusinessImpl = new TodoBusinessImpl(todoService);
+```
+
+Injecting the mock by using InjectMocks
+```Java
+@InjectMocks
+TodoBusinessImpl todoBusinessImpl;
+```
+
+We can now remove all the *TodoBusinessImpl todoBusinessImpl = new TodoBusinessImpl(todoService)* instances.
+
+The test becomes more readable after removing all the unneeded instances.  
+This will allow us to focus on the business logic and on the real code we want to test.
+
+#### @Captor to implement ArgumentCaptor
+We could also create the argument captor by using Mockito annotation; instead of creating it for every single test we want to use it.
+
+```Java
+ArgumentCaptor<String> stringArgumentCaptor = ArgumentCaptor.forClass(String.class);
+```  
+
+Creating Argument Captor with mockito annotation:
+```Java
+@Captor
+ArgumentCaptor<String> stringArgumentCaptor;
+```
+
+These two piece of code are the same; however, the mockito annotation makes us save from creating an *Argument Capture* in every single method.
+
+*TodoBusinessImplMockitoWithMockitoAnnotationsTest.java* has been created to apply what I learned on this step.
+
+
+
+### TodoBusinessImplMockitoInjectMocksTest.java final code
+see below
+
+```Java
+@RunWith(MockitoJUnitRunner.class)
+public class TodoBusinessImplMockitoInjectMocksTest {
+	@Mock
+	TodoService todoService;
+
+		@InjectMocks
+		TodoBusinessImpl todoBusinessImpl;
+
+		@Captor
+		ArgumentCaptor<String> stringArgumentCaptor;
+
+		@Test
+		public void usingMockito() {
+			List<String> allTodos = Arrays.asList("Learn Spring MVC",
+					"Learn Spring", "Learn to Dance");
+
+			when(todoService.retrieveTodos("Ranga")).thenReturn(allTodos);
+
+			List<String> todos = todoBusinessImpl
+					.retrieveTodosRelatedToSpring("Ranga");
+
+			assertEquals(2, todos.size());
+		}
+}
+```
+
+
+###  Step 11- Mockito Junit Rules
+
+To run our tests we have used the Mockito Junit Runner,*RunWith(MockitoJUnitRunner.class)*.
+
+The  makes sure all the mocks are created (checking @mock annotations.) and it auto-wire as per they need. This means the MockitoJunitRunner will inject the mocks into the Class we want by searching for @InjectMocks
+
+The disadvantege of using Mockito Junit Runner is that we cannot use another runner on the same class.
